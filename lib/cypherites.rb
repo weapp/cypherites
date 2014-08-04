@@ -1,5 +1,6 @@
 require "cypherites/version"
 
+require "cypherites/predicate"
+
 module Cypherites
-  # Your code goes here...
 end
