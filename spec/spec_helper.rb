@@ -1,1 +1,2 @@
 require 'cypherites'
+require 'ostruct'
