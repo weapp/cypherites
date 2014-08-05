@@ -2,10 +2,10 @@ require 'spec_helper'
 
 module Cypherites
   describe Query do
+    let(:runner){double("runner")}
 
     describe ".new" do
       it "adapter is set" do
-        runner = double("runner")
         q = Query.new(runner)
         expect(q.runner).to be runner
       end
@@ -15,7 +15,6 @@ module Cypherites
 
     describe "#execute" do
       it "must call @runner" do
-        runner = double("runner")
         q = Query.new(runner)
         expect(runner).to receive(:call).with(q, {foo: "bar", baz: "qux"})
         q.execute({foo: "bar", baz: "qux"})

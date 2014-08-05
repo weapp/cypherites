@@ -56,6 +56,24 @@ module Cypherites
         p = Predicate.new("predicate ?")
         expect(p.generate({key: "value"})).to be == "predicate {key : 'value'}"
       end
+
+      context "special chars in predicates" do
+        it { expect(Predicate.build('\?')).to eq "?" }
+
+        it { expect(Predicate.build('a \? a')).to eq "a ? a" }
+
+        it { expect(Predicate.build('?', 3)).to eq "3" }
+
+        it { expect(Predicate.build('a ? a', 3)).to eq "a 3 a" }
+
+        it { expect(Predicate.build('%')).to eq "%" }
+
+        it { expect(Predicate.build('%%')).to eq "%%" }
+
+        it { expect(Predicate.build('%s')).to eq "%s" }
+
+        it { expect(Predicate.build('1%s')).to eq "1%s" }
+      end
     end
 
   end

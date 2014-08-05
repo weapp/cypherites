@@ -19,7 +19,11 @@ module Cypherites
     # parses of predicates
     
     def generate_from_string *opts
-      predicate.gsub(/\?/, "%s") % opts.map{|prop| to_prop_string(prop)}
+      predicate
+        .gsub(/%/, '%%')
+        .gsub(/([^\\])\?/, '\1%s')
+        .gsub(/^\?/, '%s')
+        .gsub(/\\\?/, '?') % opts.map{|prop| to_prop_string(prop)}
     end
 
     def generate_from_fixnum
