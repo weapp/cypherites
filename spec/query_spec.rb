@@ -5,31 +5,27 @@ module Cypherites
 
     describe ".new" do
       it "adapter is set" do
-        runner = OpenStruct.new
+        runner = double("runner")
         q = Query.new(runner)
-        expect(q.runner).to eq runner
+        expect(q.runner).to be runner
       end
 
-      it "adapter is optional" do
-        q = Query.new()
-        expect(q).to be_truthy # passes if actual is truthy (not nil or false)
-      end
+      it("adapter is optional"){ is_expected.to be_truthy}
     end
 
     describe "#execute" do
       it "must call @runner" do
         runner = double("runner")
         q = Query.new(runner)
-        expect(runner).to receive(:call).with(q)        
-        q.execute
+        expect(runner).to receive(:call).with(q, {foo: "bar", baz: "qux"})
+        q.execute({foo: "bar", baz: "qux"})
       end
     end
 
     describe "#statement" do
 
       it "must return itself" do
-        @q = Query.new
-        expect(@q.statement(:MATCH, "predicate")).to be == @q
+        expect(subject.statement(:MATCH, "predicate")).to be subject
       end
       
       it "must store the statement" do
@@ -46,8 +42,7 @@ module Cypherites
     common_clauses.each do |clause|
       describe "##{clause}" do
         it "must return itself" do
-          q = Query.new
-          expect(q.send(clause, "predicate")).to be == q
+          expect(subject.send(clause, "predicate")).to be subject
         end
 
         it "must call #statement with correct symbol" do
@@ -56,48 +51,43 @@ module Cypherites
           st_build_mock = double("st_build_mock")
           expect(st_build_mock).to receive(:new).with(sym){Statement.new(sym)}        
           
-          q = Query.new
-          q.statement_builder = st_build_mock
-          q.send(clause, "predicate")
+          subject.statement_builder = st_build_mock
+          subject.send(clause, "predicate")
         end
       end
     end
 
     describe "#return_node" do
       it "must return itself" do
-        q = Query.new
-        expect(q.return_node("node1")).to be == q 
+        expect(subject.return_node("node1")).to be subject
       end
 
       it "must call #statement with correct symbol" do
           st_build_mock = double("st_build_mock")
           expect(st_build_mock).to receive(:new).with(:RETURN){Statement.new(:RETURN)}        
           
-          q = Query.new
-          q.statement_builder = st_build_mock
-          q.return_node("node1")
+          subject.statement_builder = st_build_mock
+          subject.return_node("node1")
       end
     end
 
     describe "#return_rel" do
       it "must return itself" do
-        q = Query.new
-        expect(q.return_rel("rel")).to be == q
+        expect(subject.return_rel("rel")).to be subject
       end
 
       it "must call #statement with correct symbol" do
           st_build_mock = double("st_build_mock")
           expect(st_build_mock).to receive(:new).with(:RETURN){Statement.new(:RETURN)}        
           
-          q = Query.new
-          q.statement_builder = st_build_mock
-          q.return_rel("rel")
+          subject.statement_builder = st_build_mock
+          subject.return_rel("rel")
       end
     end
 
     describe "#to_cypher" do
       it "returned sorted statements" do
-        q = Query.new
+        subject
           .limit("")
           .match("")
           .order_by("")
@@ -106,11 +96,11 @@ module Cypherites
           .start("")
           .where("")
 
-        expect(q.to_cypher).to be == "START  MATCH  OPTIONAL MATCH  WHERE  RETURN  ORDER BY  LIMIT "
+        expect(subject.to_cypher).to be == "START  MATCH  OPTIONAL MATCH  WHERE  RETURN  ORDER BY  LIMIT "
       end
 
       it "example query must work" do
-        q = Query.new
+        subject
           .limit(10)
           .match("(object ?)", {key: "value"})
           .order_by(:id)
@@ -134,11 +124,11 @@ module Cypherites
           "LIMIT 10"
         ]
 
-        expect(q.to_cypher).to be == result.join(" ")
+        expect(subject.to_cypher).to be == result.join(" ")
       end
 
       it "example first" do
-        q = Query.new
+        subject
           .match("(object)")
           .return_node("object")
           .order_by("id(object) ASC")
@@ -146,11 +136,11 @@ module Cypherites
 
         result = 'MATCH (object) RETURN id(object) as object_id, labels(object) as object_labels, object ORDER BY id(object) ASC LIMIT 1'
 
-        expect(q.to_cypher).to be == result
+        expect(subject.to_cypher).to be == result
       end
 
       it "example last" do
-        q = Query.new
+        subject
           .match("(object)")
           .return_node("object")
           .order_by("id(object) DESC")
@@ -158,11 +148,11 @@ module Cypherites
 
         result = 'MATCH (object) RETURN id(object) as object_id, labels(object) as object_labels, object ORDER BY id(object) DESC LIMIT 1'
 
-        expect(q.to_cypher).to be == result
+        expect(subject.to_cypher).to be == result
       end
 
       it "example find" do
-        q = Query.new
+        subject
           .start("object=node(?)", 99)
           .return_node("object")
           .order_by("id(object) DESC")
@@ -170,21 +160,21 @@ module Cypherites
 
         result = 'START object=node(99) RETURN id(object) as object_id, labels(object) as object_labels, object ORDER BY id(object) DESC LIMIT 1'
 
-        expect(q.to_cypher).to be == result
+        expect(subject.to_cypher).to be == result
       end
 
       it "example all" do
-        q = Query.new
+        subject
           .match("(object)")
           .return_node("object")
 
         result = 'MATCH (object) RETURN id(object) as object_id, labels(object) as object_labels, object'
 
-        expect(q.to_cypher).to be == result
+        expect(subject.to_cypher).to be == result
       end
 
       it "example clear" do
-        q = Query.new
+        subject
           .match("(object)")
           .optional_match("(object)-[relation]-()")
           .delete(:object)
@@ -192,7 +182,7 @@ module Cypherites
 
         result = 'MATCH (object) OPTIONAL MATCH (object)-[relation]-() DELETE object, relation'
 
-        expect(q.to_cypher).to be == result
+        expect(subject.to_cypher).to be == result
       end
     end
   end

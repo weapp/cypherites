@@ -69,8 +69,8 @@ module Cypherites
       statement :LIMIT, *args
     end
 
-    def execute
-      runner.call(self)
+    def execute *args
+      runner.call(self, *args)
     end
 
     def to_cypher
