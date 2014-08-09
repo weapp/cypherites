@@ -30,13 +30,13 @@ module Cypherites
       it "must store the statement" do
         q = Query.new
         q.statement(:MATCH, "predicate")
-        statements = q.statements
+        statements = q.statements.first
         expect(statements.keys.first).to be == :MATCH
         expect(statements.values.first.predicates).to be == ["predicate"]
       end
     end
 
-    common_clauses = %w{match optional_match where return order_by limit delete}
+    common_clauses = %w{match optional_match where return order_by limit delete with}
 
     common_clauses.each do |clause|
       describe "##{clause}" do
@@ -96,6 +96,24 @@ module Cypherites
           .where("")
 
         expect(subject.to_cypher).to be == "START  MATCH  OPTIONAL MATCH  WHERE  RETURN  ORDER BY  LIMIT "
+      end
+
+      it "break sortwd with new_phase" do
+        subject
+          .return("")
+          .new_phase          
+          .start("")
+
+        expect(subject.to_cypher).to be == "RETURN  START "
+      end
+
+      it "break sortwd with no_sort" do
+        subject
+          .no_sort
+          .return("")
+          .start("")
+
+        expect(subject.to_cypher).to be == "RETURN  START "
       end
 
       it "example query must work" do
@@ -183,6 +201,22 @@ module Cypherites
 
         expect(subject.to_cypher).to be == result
       end
+
+      it "example phases" do
+        subject
+          .match("(n { name: \"Anders\" })--(m)")
+          .with("m")
+          .order_by("m.name DESC")
+          .limit(1)
+          .new_phase
+          .match("(m)--(o)")
+          .return("o.name")
+
+        result = 'MATCH (n { name: "Anders" })--(m) WITH m ORDER BY m.name DESC LIMIT 1 MATCH (m)--(o) RETURN o.name'
+
+        expect(subject.to_cypher).to be == result
+      end
+
     end
   end
 end

@@ -6,12 +6,24 @@ module Cypherites
 
     include QueryOutBoxing
     
-    attr_accessor :runner, :statements, :statement_builder
+    attr_accessor :runner, :statements, :statement_builder, :sorted
 
     def initialize(runner=nil, statement_builder=Statement)
+      self.sorted = true
       self.runner = runner
       self.statement_builder = statement_builder
-      self.statements = Hash.new{|h,k| h[k] = self.statement_builder.new(k) }
+      self.statements = []
+      new_phase
+    end
+
+    def new_phase
+      statements << Hash.new{|h,k| h[k] = self.statement_builder.new(k) }
+      self
+    end
+
+    def no_sort
+      self.sorted = false
+      self
     end
 
     def statement clause, predicate, *opts
@@ -20,7 +32,7 @@ module Cypherites
     end
 
     def statement! clause, predicate, *opts
-      self.statements[clause].add(predicate, *opts)
+      self.statements.last[clause].add(predicate, *opts)
     end
 
     def start *args
@@ -65,6 +77,10 @@ module Cypherites
       statement :"ORDER BY", *args
     end
 
+    def with *args
+      statement :WITH, *args
+    end
+
     def limit *args
       statement :LIMIT, *args
     end
@@ -74,15 +90,26 @@ module Cypherites
     end
 
     def to_cypher
-      s = sorted_statements.values.map(&:join).join(" ")
+      s = all_sorted_statements.map(&:join).join(" ")
     end
 
     private
     CLAUSES = [:START, :MATCH, :"OPTIONAL MATCH", :CREATE, :WHERE, :WITH, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
 
-    def sorted_statements
-      arr = self.statements.sort_by { |clause, params| CLAUSES.index(clause) }
-      Hash[arr]
+    def all_sorted_statements
+      arr = []
+      self.statements.each do |statements|
+       arr += sorted_statements(statements).map{|clause, statement| statement}
+      end
+      arr
+    end
+
+    def sorted_statements statements
+      if sorted
+        statements.sort_by { |clause, statement| CLAUSES.index(clause) }
+      else
+        statements
+      end
     end
   end
 end
