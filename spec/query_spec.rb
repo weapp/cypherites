@@ -98,7 +98,7 @@ module Cypherites
         expect(subject.to_cypher).to be == "START  MATCH  OPTIONAL MATCH  WHERE  RETURN  ORDER BY  LIMIT "
       end
 
-      it "break sortwd with new_phase" do
+      it "break sorted with new_phase" do
         subject
           .return("")
           .new_phase          
@@ -107,7 +107,7 @@ module Cypherites
         expect(subject.to_cypher).to be == "RETURN  START "
       end
 
-      it "break sortwd with no_sort" do
+      it "break sorted with no_sort" do
         subject
           .no_sort
           .return("")
