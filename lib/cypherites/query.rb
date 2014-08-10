@@ -14,6 +14,8 @@ module Cypherites
       self.statement_builder = statement_builder
       self.statements = []
       new_phase
+      @sep = "\n"
+      @auto_phases = true
     end
 
     def new_phase
@@ -35,11 +37,16 @@ module Cypherites
       self.statements.last[clause].add(predicate, *opts)
     end
 
+    def create *args
+      statement :CREATE, *args
+    end
+
     def start *args
       statement :START, *args
     end
 
     def match *args
+      new_phase  if @auto_phases && statements.last.keys != [:MATCH]
       statement :MATCH, *args
     end
 
@@ -77,7 +84,12 @@ module Cypherites
       statement :"ORDER BY", *args
     end
 
+    def skip *args
+      statement :SKIP, *args
+    end
+
     def with *args
+      new_phase if @auto_phases
       statement :WITH, *args
     end
 
@@ -90,11 +102,27 @@ module Cypherites
     end
 
     def to_cypher
-      s = all_sorted_statements.map(&:join).join(" ")
+      all_sorted_statements.map(&:join).join(@sep)
+    end
+
+    def to_str
+      to_cypher
+    end
+
+    def to_s
+      to_cypher
+    end
+
+    def inspect
+      to_cypher
+    end
+
+    def == other
+      to_s == other.to_s
     end
 
     private
-    CLAUSES = [:START, :MATCH, :"OPTIONAL MATCH", :CREATE, :WHERE, :WITH, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
+    CLAUSES = [:START, :MATCH, :"OPTIONAL MATCH", :WHERE, :CREATE, :WITH, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
 
     def all_sorted_statements
       arr = []
