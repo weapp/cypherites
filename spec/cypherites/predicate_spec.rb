@@ -35,6 +35,10 @@ module Cypherites
       end
 
       it "must create and generate a predicate" do
+        expect(Predicate.build("predicate <?>", "args", as: "wadus")).to be == "predicate <'args'> AS wadus"
+      end
+
+      it "must create and generate a predicate" do
         expect(Predicate.build("predicate <?>", "args")).to be == "predicate <'args'>"
       end
 

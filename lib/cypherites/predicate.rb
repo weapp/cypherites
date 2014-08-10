@@ -15,15 +15,28 @@ module Cypherites
     end
 
     private
-    
-    # parses of predicates
-    
-    def generate_from_string *opts
-      predicate
+
+    # parses of predicates    
+    def generate_from_string *params
+      counter = 0
+      p = predicate
         .gsub(/%/, '%%')
-        .gsub(/([^\\])\?/, '\1%s')
-        .gsub(/^\?/, '%s')
-        .gsub(/\\\?/, '?') % opts.map{|prop| to_prop_string(prop)}
+        .gsub(/([^\\])\?/){|m| counter +=1; "#{m[0]}%s"} # interrogante no escapado
+        .gsub(/^\?/){counter +=1; '%s'} # interrogante al inicio
+        .gsub(/\\\?/, '?')
+
+      number_of_params = params.count
+
+      opts = (counter == (params.count - 1)) ? params.pop : {}
+
+      p = apply_opts_to_string(p, opts)
+
+      p % params.map{|prop| to_prop_string(prop)}
+    end
+
+    def apply_opts_to_string(p, opts)
+      p << " AS #{opts[:as]}" if opts.has_key? :as
+      p
     end
 
     def generate_from_fixnum
