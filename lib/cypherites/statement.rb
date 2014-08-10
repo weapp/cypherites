@@ -10,20 +10,28 @@ module Cypherites
     end
 
     def add(predicate, *opts)
-      @predicates << Predicate.build(predicate, *opts)
+      predicates << Predicate.build(predicate, *opts)
     end
 
     def join
-      "#{clause} #{@predicates.join(separator)}"
+      if joineable?
+        "#{clause} #{predicates.join(separator)}"
+      else
+        predicates.map{|p| "#{clause} #{p}"}.join("\n")
+      end
     end
 
     def inspect
-      @predicates.inspect
+      predicates.inspect
     end
 
     private
     def separator
-      clause == :WHERE ? " and " : ", "
+      clause == :WHERE ? " AND " : ", "
+    end
+
+    def joineable?
+      ![:MERGE, :USING].include? clause
     end
 
   end

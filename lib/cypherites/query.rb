@@ -88,6 +88,24 @@ module Cypherites
       statement :SKIP, *args
     end
 
+    def unwind *args
+      statement :UNWIND, *args
+    end
+
+    def using *args
+      statement :USING, *args
+    end
+
+    def merge *args
+      statement :MERGE, *args
+    end
+
+    def union predicate="", *args
+      new_phase
+      statement :UNION, predicate, *args
+      new_phase
+    end
+
     def with *args
       new_phase if @auto_phases
       statement :WITH, *args
@@ -122,7 +140,7 @@ module Cypherites
     end
 
     private
-    CLAUSES = [:START, :MATCH, :"OPTIONAL MATCH", :WHERE, :CREATE, :WITH, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
+    CLAUSES = [:UNION, :UNWIND, :MERGE, :START, :MATCH, :USING, :"OPTIONAL MATCH", :WHERE, :CREATE, :WITH, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
 
     def all_sorted_statements
       arr = []

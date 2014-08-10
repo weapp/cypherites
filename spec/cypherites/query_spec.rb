@@ -36,7 +36,7 @@ module Cypherites
       end
     end
 
-    common_clauses = %w{skip create match optional_match where return order_by limit delete with}
+    common_clauses = %w{using unwind merge union skip create match optional_match where return order_by limit delete with}
 
     common_clauses.each do |clause|
       describe "##{clause}" do
@@ -240,7 +240,7 @@ module Cypherites
                  "MATCH (object {key : 'value'})\n" +
                  "OPTIONAL MATCH (object)->[r]->()\n" +
                  "WHERE ((object.field = 'value') OR (wadus = 'fadus')) "+
-                 "and object.field = 'value' and object.field2 = 'value2'\n" +
+                 "AND object.field = 'value' AND object.field2 = 'value2'\n" +
                  "RETURN id(object) as id, object, r\n" +
                  "ORDER BY id\n" +
                  "SKIP 3\n" +
@@ -320,7 +320,7 @@ module Cypherites
         is_expected.to eq result
       end
 
-      it "example clear" do
+      it "example match 2 nodes" do
         subject
           .match("(a:Person)")
           .match("(b:Person)")
@@ -330,9 +330,26 @@ module Cypherites
           .return("r")
 
         result = "MATCH (a:Person), (b:Person)\n" +
-                 "WHERE a.name = 'Node A' and b.name = 'Node B'\n" +
+                 "WHERE a.name = 'Node A' AND b.name = 'Node B'\n" +
                  "CREATE (a)-[r:RELTYPE]->(b)\n" +
                  "RETURN r"
+
+        is_expected.to eq result
+      end
+
+      it "example match 2 nodes" do
+        subject
+          .unwind("{ events } AS event")
+          .merge("(y:Year { year:event.year })")
+          .merge("(y)<-[:IN]-(e:Event { id:event.id })")
+          .return("e.id AS x")
+          .order_by("x")
+
+        result = "UNWIND { events } AS event\n" + 
+                 "MERGE (y:Year { year:event.year })\n" + 
+                 "MERGE (y)<-[:IN]-(e:Event { id:event.id })\n" + 
+                 "RETURN e.id AS x\n" + 
+                 "ORDER BY x"
 
         is_expected.to eq result
       end
@@ -352,6 +369,56 @@ module Cypherites
                  "LIMIT 1\n" + 
                  "MATCH (m)--(o)\n" + 
                  "RETURN o.name"
+
+        is_expected.to eq result
+      end
+
+      it "example union" do
+        subject
+          .match("(n:Actor)")
+          .return("n.name AS name")
+          .union
+          .match("(n:Movie)")
+          .return("n.title AS name")
+
+        result = "MATCH (n:Actor)\n" + 
+                 "RETURN n.name AS name\n" + 
+                 "UNION \n" + 
+                 "MATCH (n:Movie)\n" + 
+                 "RETURN n.title AS name"
+
+        is_expected.to eq result
+      end
+
+      it "example using index" do
+        subject
+          .match("(m:German)-->(n:Swedish)")
+          .using("INDEX m:German(surname)")
+          .using("INDEX n:Swedish(surname)")
+          .where("m.surname = 'Plantikow'")
+          .where("n.surname = 'Taylor'")
+          .return("m")
+
+        result = "MATCH (m:German)-->(n:Swedish)\n" +
+                 "USING INDEX m:German(surname)\n" +
+                 "USING INDEX n:Swedish(surname)\n" +
+                 "WHERE m.surname = 'Plantikow' AND n.surname = 'Taylor'\n" +
+                 "RETURN m"
+
+        is_expected.to eq result
+      end
+
+      it "example using scan" do
+        subject
+          .match("(m:German)")
+          .using("SCAN m:German")
+          .where("m.surname = 'Plantikow'")
+          .return("m")
+
+        result = "MATCH (m:German)\n" +
+                 "USING SCAN m:German\n" +
+                 "WHERE m.surname = 'Plantikow'\n" +
+                 "RETURN m"
 
         is_expected.to eq result
       end

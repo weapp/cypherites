@@ -42,7 +42,7 @@ module Cypherites
         statement = Statement.new(:WHERE)
         statement.add("predicate 1")
         statement.add("predicate 2")
-        expect(statement.join).to be =="WHERE predicate 1 and predicate 2"
+        expect(statement.join).to be =="WHERE predicate 1 AND predicate 2"
       end
     end
 
