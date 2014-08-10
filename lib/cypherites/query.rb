@@ -84,6 +84,19 @@ module Cypherites
       statement :"ORDER BY", *args
     end
 
+    def order *args
+      args.each do |option|
+        if option.kind_of? Hash
+          option.each do |field, asc_desc|
+            order_by "#{field} #{asc_desc.to_s.upcase}"
+          end
+        else
+          order_by option
+        end
+      end
+      self
+    end
+
     def skip *args
       statement :SKIP, *args
     end

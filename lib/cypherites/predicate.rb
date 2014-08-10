@@ -4,9 +4,11 @@ module Cypherites
 
     def initialize predicate
       self.predicate = predicate
+      @last_opts = {}
     end
 
     def generate *opts
+      @last_opts = {}
       send("generate_from_#{predicate.class.to_s.downcase}", *opts)
     end
 
@@ -27,23 +29,24 @@ module Cypherites
 
       number_of_params = params.count
 
-      opts = (counter == (params.count - 1)) ? params.pop : {}
+      # updating last opts from params
+      @last_opts = params.pop if counter == (params.count - 1)
 
-      p = apply_opts_to_string(p, opts)
+      # apply "as" option
+      p << " AS #{@last_opts.delete(:as)}" if @last_opts.has_key? :as
 
+      # interpolating string
       p % params.map{|prop| to_prop_string(prop)}
     end
 
-    def apply_opts_to_string(p, opts)
-      p << " AS #{opts[:as]}" if opts.has_key? :as
-      p
-    end
 
-    def generate_from_fixnum
+    def generate_from_fixnum opts={}
+      @last_opts = opts
       predicate.to_s
     end
 
-    def generate_from_symbol
+    def generate_from_symbol opts={}
+      @last_opts = opts
       predicate.to_s
     end
 

@@ -4,13 +4,14 @@ module Cypherites
   class Statement
     attr_accessor :predicates, :clause
 
-    def initialize(clause)
+    def initialize(clause, predicate_builder=Predicate)
       @clause = clause
       @predicates = []
+      @predicate_builder = predicate_builder
     end
 
     def add(predicate, *opts)
-      predicates << Predicate.build(predicate, *opts)
+      predicates << @predicate_builder.build(predicate, *opts)
     end
 
     def join

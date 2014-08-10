@@ -86,26 +86,26 @@ module Cypherites
 
     describe "#to_cypher" do
       it "returned sorted statements" do
-        # subject
-        #   .create("")
-        #   .skip("")
-        #   .limit("")
-        #   .match("")
-        #   .order_by("")
-        #   .optional_match("")
-        #   .return("")
-        #   .start("")
-        #   .where("")
+        subject
+          .match("")
+          .create("")
+          .skip("")
+          .limit("")
+          .order_by("")
+          .optional_match("")
+          .return("")
+          .start("")
+          .where("")
 
-        # expect(subject.to_cypher).to be == ["START",
-        #                                    "MATCH",
-        #                                    "OPTIONAL MATCH",
-        #                                    "WHERE",
-        #                                    "CREATE",
-        #                                    "RETURN",
-        #                                    "ORDER BY",
-        #                                    "SKIP",
-        #                                    "LIMIT "].join(" \n")
+        expect(subject.to_cypher).to be == ["START",
+                                           "MATCH",
+                                           "OPTIONAL MATCH",
+                                           "WHERE",
+                                           "CREATE",
+                                           "RETURN",
+                                           "ORDER BY",
+                                           "SKIP",
+                                           "LIMIT "].join(" \n")
       end
 
       it "break sorted with new_phase" do
@@ -227,7 +227,7 @@ module Cypherites
           .match("(object ?)", {key: "value"})
           .order_by(:id)
           .optional_match("(object)->[r]->()")
-          .return("id(object) as id")
+          .return("id(object)", as: "id")
           .return("object")
           .return("r")
           .where(or: [["object.field = ?", "value"], ["wadus = ?", "fadus"]])
@@ -241,7 +241,7 @@ module Cypherites
                  "OPTIONAL MATCH (object)->[r]->()\n" +
                  "WHERE ((object.field = 'value') OR (wadus = 'fadus')) "+
                  "AND object.field = 'value' AND object.field2 = 'value2'\n" +
-                 "RETURN id(object) as id, object, r\n" +
+                 "RETURN id(object) AS id, object, r\n" +
                  "ORDER BY id\n" +
                  "SKIP 3\n" +
                  "LIMIT 10"
@@ -254,7 +254,7 @@ module Cypherites
         subject
           .match("(object)")
           .return_node("object")
-          .order_by("id(object) ASC")
+          .order("id(object)" => :asc)
           .limit(1)
 
         result = "MATCH (object)\n" +
@@ -269,7 +269,7 @@ module Cypherites
         subject
           .match("(object)")
           .return_node("object")
-          .order_by("id(object) DESC")
+          .order("id(object)" => :desc)
           .limit(1)
 
         result = "MATCH (object)\n" +
@@ -284,12 +284,12 @@ module Cypherites
         subject
           .start("object=node(?)", 99)
           .return_node("object")
-          .order_by("id(object) DESC")
+          .order("id(object)")
           .limit(1)
 
         result = "START object=node(99)\n" + 
                  "RETURN id(object) as object_id, labels(object) as object_labels, object\n" + 
-                 "ORDER BY id(object) DESC\n" + 
+                 "ORDER BY id(object)\n" +
                  "LIMIT 1"
 
         is_expected.to eq result
@@ -343,13 +343,13 @@ module Cypherites
           .merge("(y:Year { year:event.year })")
           .merge("(y)<-[:IN]-(e:Event { id:event.id })")
           .return("e.id AS x")
-          .order_by("x")
+          .order({x: :asc}, "e.id")
 
         result = "UNWIND { events } AS event\n" + 
                  "MERGE (y:Year { year:event.year })\n" + 
                  "MERGE (y)<-[:IN]-(e:Event { id:event.id })\n" + 
                  "RETURN e.id AS x\n" + 
-                 "ORDER BY x"
+                 "ORDER BY x ASC, e.id"
 
         is_expected.to eq result
       end
@@ -358,7 +358,7 @@ module Cypherites
         subject
           .match("(n { name: \"Anders\" })--(m)")
           .with("m")
-          .order_by("m.name DESC")
+          .order("m.name" => :desc)
           .limit(1)
           .match("(m)--(o)")
           .return("o.name")
@@ -376,10 +376,10 @@ module Cypherites
       it "example union" do
         subject
           .match("(n:Actor)")
-          .return("n.name AS name")
+          .return("n.name", as: "name")
           .union
           .match("(n:Movie)")
-          .return("n.title AS name")
+          .return("n.title", as: "name")
 
         result = "MATCH (n:Actor)\n" + 
                  "RETURN n.name AS name\n" + 
