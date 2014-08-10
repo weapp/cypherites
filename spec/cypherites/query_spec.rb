@@ -26,7 +26,7 @@ module Cypherites
       it "must return itself" do
         expect(subject.statement(:MATCH, "predicate")).to be subject
       end
-      
+
       it "must store the statement" do
         q = Query.new
         q.statement(:MATCH, "predicate")
@@ -46,10 +46,10 @@ module Cypherites
 
         it "must call #statement with correct symbol" do
           sym = clause.upcase.gsub(/_/, " ").to_sym
-          
+
           st_build_mock = double("st_build_mock")
-          expect(st_build_mock).to receive(:new).with(sym){Statement.new(sym)}        
-          
+          expect(st_build_mock).to receive(:call).with(sym){Statement.new(sym)}
+
           subject.statement_builder = st_build_mock
           subject.send(clause, "predicate")
         end
@@ -63,8 +63,8 @@ module Cypherites
 
       it "must call #statement with correct symbol" do
           st_build_mock = double("st_build_mock")
-          expect(st_build_mock).to receive(:new).with(:RETURN){Statement.new(:RETURN)}        
-          
+          expect(st_build_mock).to receive(:call).with(:RETURN){Statement.new(:RETURN)}
+
           subject.statement_builder = st_build_mock
           subject.return_node("node1")
       end
@@ -77,8 +77,8 @@ module Cypherites
 
       it "must call #statement with correct symbol" do
           st_build_mock = double("st_build_mock")
-          expect(st_build_mock).to receive(:new).with(:RETURN){Statement.new(:RETURN)}        
-          
+          expect(st_build_mock).to receive(:call).with(:RETURN){Statement.new(:RETURN)}
+
           subject.statement_builder = st_build_mock
           subject.return_rel("rel")
       end
@@ -111,7 +111,7 @@ module Cypherites
       it "break sorted with new_phase" do
         subject
           .return("")
-          .new_phase          
+          .new_phase
           .start("")
 
         expect(subject.to_cypher).to be == "RETURN \nSTART "
@@ -120,7 +120,7 @@ module Cypherites
       it "with clause break sorted" do
         subject
           .return("")
-          .with("")          
+          .with("")
           .start("")
 
         expect(subject.to_cypher).to be == "RETURN \nSTART \nWITH "
@@ -245,7 +245,7 @@ module Cypherites
                  "ORDER BY id\n" +
                  "SKIP 3\n" +
                  "LIMIT 10"
-        
+
 
         is_expected.to eq result
       end

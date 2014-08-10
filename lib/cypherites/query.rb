@@ -1,3 +1,4 @@
+require_relative "predicate"
 require_relative "statement"
 require_relative "query_out_boxing"
 
@@ -8,7 +9,7 @@ module Cypherites
     
     attr_accessor :runner, :statements, :statement_builder, :predicate_builder, :sorted
 
-    def initialize(runner=nil, statement_builder=Statement, predicate_builder=Predicate)
+    def initialize(runner=nil, statement_builder=Statement.method(:new), predicate_builder=Predicate.method(:build))
       self.sorted = true
       self.runner = runner
       self.statement_builder = statement_builder
@@ -20,7 +21,7 @@ module Cypherites
     end
 
     def new_phase
-      statements << Hash.new{|h,k| h[k] = self.statement_builder.new(k) }
+      statements << Hash.new{|h,k| h[k] = self.statement_builder.(k) }
       self
     end
 
@@ -35,7 +36,7 @@ module Cypherites
     end
 
     def statement! clause, predicate, *opts
-      self.statements.last[clause].add(predicate_builder.build(predicate, *opts))
+      self.statements.last[clause].add(predicate_builder.(predicate, *opts))
     end
 
     def create *args

@@ -1,5 +1,3 @@
-require_relative "predicate"
-
 module Cypherites
   class Statement
     attr_accessor :predicates, :clause
@@ -17,7 +15,7 @@ module Cypherites
       if joineable?
         "#{clause} #{predicates.join(separator)}"
       else
-        predicates.map{|p| "#{clause} #{p}"}.join("\n")
+        predicates.map{|p| "#{clause} #{p}"}
       end
     end
 

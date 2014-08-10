@@ -34,7 +34,7 @@ module Cypherites
         expect(subject).to receive(:joineable?){false}
         subject.add("predicate 1")
         subject.add("predicate 2")
-        expect(subject.join).to eq "MATCH predicate 1\nMATCH predicate 2"
+        expect(subject.join).to eq ["MATCH predicate 1", "MATCH predicate 2"]
       end
 
       it "predicates must be separted by AND if caluse is where" do
