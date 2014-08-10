@@ -6,12 +6,13 @@ module Cypherites
 
     include QueryOutBoxing
     
-    attr_accessor :runner, :statements, :statement_builder, :sorted
+    attr_accessor :runner, :statements, :statement_builder, :predicate_builder, :sorted
 
-    def initialize(runner=nil, statement_builder=Statement)
+    def initialize(runner=nil, statement_builder=Statement, predicate_builder=Predicate)
       self.sorted = true
       self.runner = runner
       self.statement_builder = statement_builder
+      self.predicate_builder = predicate_builder
       self.statements = []
       new_phase
       @sep = "\n"
@@ -34,7 +35,7 @@ module Cypherites
     end
 
     def statement! clause, predicate, *opts
-      self.statements.last[clause].add(predicate, *opts)
+      self.statements.last[clause].add(predicate_builder.build(predicate, *opts))
     end
 
     def create *args
