@@ -77,17 +77,11 @@ module Cypherites
     end
 
     def return_node *fields
-      fields.each do |field| 
-        self.return("id(#{field}) as #{field}_id, labels(#{field}) as #{field}_labels, #{field}")
-      end
-      self
+      return_node_or_rel "labels", *fields
     end
 
     def return_rel *fields
-      fields.each do |field| 
-        self.return("id(#{field}) as #{field}_id, type(#{field}) as #{field}_type, #{field}")
-      end
-      self
+      return_node_or_rel "type", *fields
     end
 
     def order_by *args
@@ -212,6 +206,13 @@ module Cypherites
       else
         statements
       end
+    end
+
+    def return_node_or_rel func, *fields
+      fields.each do |field| 
+        self.return("id(#{field}) as #{field}_id, #{func}(#{field}) as #{field}_#{func}, #{field}")
+      end
+      self
     end
   end
 end
