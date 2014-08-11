@@ -7,6 +7,10 @@ module Cypherites
       @predicates = []
     end
 
+    def modify_last(pattern="%s")
+      @predicates[-1] = pattern % @predicates[-1]
+    end
+
     def add(predicate)
       predicates << predicate
     end

@@ -21,6 +21,7 @@ module Cypherites
     end
 
     def new_phase
+      @last_clause = nil
       statements << Hash.new{|h,k| h[k] = self.statement_builder.(k) }
       self
     end
@@ -36,7 +37,12 @@ module Cypherites
     end
 
     def statement! clause, predicate, *opts
-      self.statements.last[clause].add(predicate_builder.(predicate, *opts))
+      add_predicate clause, predicate_builder.(predicate, *opts)
+    end
+
+    def add_predicate clause, predicate
+      @last_clause = clause
+      self.statements.last[clause].add predicate
     end
 
     def create *args
@@ -66,6 +72,14 @@ module Cypherites
 
     def return *args
       statement :RETURN, *args
+    end
+
+    def distinct
+      if @last_clause
+        last_statements = self.statements.last[@last_clause]
+        last_statements.modify_last("DISTINCT %s")
+      end
+      self
     end
 
     def return_node *fields
@@ -109,6 +123,16 @@ module Cypherites
 
     def using *args
       statement :USING, *args
+    end
+
+    def using_index predicate, *opts
+      add_predicate :USING, predicate_builder.("INDEX #{predicate}", *opts)
+      self
+    end
+
+    def using_scan predicate, *opts
+      add_predicate :USING, predicate_builder.("SCAN #{predicate}", *opts)
+      self
     end
 
     def merge *args

@@ -167,7 +167,8 @@ module Cypherites
           it {
             subject
               .match("(a { name: 'A' })-->(b)")
-              .return("DISTINCT b")
+              .return("b")
+              .distinct
           }
         end
       end
@@ -328,11 +329,12 @@ module Cypherites
           .where("b.name = 'Node B'")
           .create("(a)-[r:RELTYPE]->(b)")
           .return("r")
+          .distinct
 
         result = "MATCH (a:Person), (b:Person)\n" +
                  "WHERE a.name = 'Node A' AND b.name = 'Node B'\n" +
                  "CREATE (a)-[r:RELTYPE]->(b)\n" +
-                 "RETURN r"
+                 "RETURN DISTINCT r"
 
         is_expected.to eq result
       end
@@ -393,8 +395,8 @@ module Cypherites
       it "example using index" do
         subject
           .match("(m:German)-->(n:Swedish)")
-          .using("INDEX m:German(surname)")
-          .using("INDEX n:Swedish(surname)")
+          .using_index("m:German(surname)")
+          .using_index("n:Swedish(surname)")
           .where("m.surname = 'Plantikow'")
           .where("n.surname = 'Taylor'")
           .return("m")
@@ -411,7 +413,7 @@ module Cypherites
       it "example using scan" do
         subject
           .match("(m:German)")
-          .using("SCAN m:German")
+          .using_scan("m:German")
           .where("m.surname = 'Plantikow'")
           .return("m")
 
