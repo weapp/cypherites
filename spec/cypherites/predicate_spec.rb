@@ -15,6 +15,10 @@ module Cypherites
 
       it { expect{subject.generate}.to raise_error ArgumentError }
 
+      it { expect(subject.generate(0, as: "return_name")).to be == "predicate 0 AS return_name" }
+
+      it { expect(subject.generate([0,1,{k: 2},"3"])).to be == "predicate [0, 1, {k : 2}, '3']" }
+
       it { expect(subject.generate(0)).to be == "predicate 0" }
 
       it { expect(subject.generate("string")).to be == "predicate 'string'" }

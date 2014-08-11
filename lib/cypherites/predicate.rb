@@ -66,6 +66,9 @@ module Cypherites
         hash_to_prop_string(props)
       elsif props.is_a? String
         string_to_prop_string(props)
+      elsif props.is_a? Array
+        r = props.map{|prop| to_prop_string(prop)}
+        "[#{r.join(", ")}]"
       else
         props.to_s
       end
