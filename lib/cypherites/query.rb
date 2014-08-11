@@ -7,14 +7,14 @@ module Cypherites
 
     include QueryOutBoxing
     
-    attr_accessor :runner, :statements, :statement_builder, :predicate_builder, :sorted
+    attr_accessor :runner, :statement_builder, :predicate_builder, :sorted, :sep
 
     def initialize(runner=nil, statement_builder=Statement.method(:new), predicate_builder=Predicate.method(:build))
       self.sorted = true
       self.runner = runner
       self.statement_builder = statement_builder
       self.predicate_builder = predicate_builder
-      self.statements = []
+      @statements = []
       new_phase
       @sep = "\n"
       @auto_phases = true
@@ -22,27 +22,13 @@ module Cypherites
 
     def new_phase
       @last_clause = nil
-      statements << Hash.new{|h,k| h[k] = self.statement_builder.(k) }
+      @statements << Hash.new{|h,k| h[k] = self.statement_builder.(k) }
       self
     end
 
     def no_sort
       self.sorted = false
       self
-    end
-
-    def statement clause, predicate, *opts
-      statement! clause, predicate, *opts
-      self
-    end
-
-    def statement! clause, predicate, *opts
-      add_predicate clause, predicate_builder.(predicate, *opts)
-    end
-
-    def add_predicate clause, predicate
-      @last_clause = clause
-      self.statements.last[clause].add predicate
     end
 
     def create *args
@@ -54,7 +40,7 @@ module Cypherites
     end
 
     def match *args
-      new_phase  if @auto_phases && statements.last.keys != [:MATCH]
+      new_phase  if @auto_phases && @statements.last.keys != [:MATCH]
       statement :MATCH, *args
     end
 
@@ -75,11 +61,19 @@ module Cypherites
     end
 
     def distinct
-      if @last_clause
-        last_statements = self.statements.last[@last_clause]
-        last_statements.modify_last("DISTINCT %s")
-      end
-      self
+      modify_last("DISTINCT %s")
+    end
+
+    def as(field)
+      modify_last( "%s AS #{field}")
+    end
+
+    def desc
+      modify_last( "%s DESC")
+    end
+
+    def asc
+      modify_last( "%s ASC")
     end
 
     def return_node *fields
@@ -158,8 +152,8 @@ module Cypherites
       runner.call(self, *args)
     end
 
-    def to_cypher
-      all_sorted_statements.map(&:join).join(@sep)
+    def to_cypher(sep=@sep)
+      all_sorted_statements.map(&:join).join(sep)
     end
 
     def to_str
@@ -181,12 +175,35 @@ module Cypherites
     private
     CLAUSES = [:UNION, :UNWIND, :MERGE, :START, :MATCH, :USING, :"OPTIONAL MATCH", :WHERE, :CREATE, :WITH, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
 
+
+    def statement clause, predicate, *opts
+      statement! clause, predicate, *opts
+      self
+    end
+
+    def statement! clause, predicate, *opts
+      add_predicate clause, predicate_builder.(predicate, *opts)
+    end
+
+    def add_predicate clause, predicate
+      @last_clause = clause
+      @statements.last[clause].add predicate
+    end
+
     def all_sorted_statements
       arr = []
-      self.statements.each do |statements|
+      @statements.each do |statements|
        arr += sorted_statements(statements).map{|clause, statement| statement}
       end
       arr
+    end
+
+    def modify_last(pattern)
+      if @last_clause
+        last_statements = @statements.last[@last_clause]
+        last_statements.modify_last(pattern)
+      end
+      self
     end
 
     def sorted_statements statements

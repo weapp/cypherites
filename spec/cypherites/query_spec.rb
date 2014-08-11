@@ -21,21 +21,6 @@ module Cypherites
       end
     end
 
-    describe "#statement" do
-
-      it "must return itself" do
-        expect(subject.statement(:MATCH, "predicate")).to be subject
-      end
-
-      it "must store the statement" do
-        q = Query.new
-        q.statement(:MATCH, "predicate")
-        statements = q.statements.first
-        expect(statements.keys.first).to be == :MATCH
-        expect(statements.values.first.predicates).to be == ["predicate"]
-      end
-    end
-
     common_clauses = %w{using unwind merge union skip create match optional_match where return order_by limit delete with}
 
     common_clauses.each do |clause|
@@ -97,15 +82,9 @@ module Cypherites
           .start("")
           .where("")
 
-        expect(subject.to_cypher).to be == ["START",
-                                           "MATCH",
-                                           "OPTIONAL MATCH",
-                                           "WHERE",
-                                           "CREATE",
-                                           "RETURN",
-                                           "ORDER BY",
-                                           "SKIP",
-                                           "LIMIT "].join(" \n")
+        result = "START MATCH OPTIONAL MATCH WHERE CREATE RETURN ORDER BY SKIP LIMIT "
+
+        expect(subject.to_cypher("")).to be == result
       end
 
       it "break sorted with new_phase" do
@@ -255,7 +234,7 @@ module Cypherites
         subject
           .match("(object)")
           .return_node("object")
-          .order("id(object)" => :asc)
+          .order("id(object)").asc
           .limit(1)
 
         result = "MATCH (object)\n" +
@@ -270,7 +249,7 @@ module Cypherites
         subject
           .match("(object)")
           .return_node("object")
-          .order("id(object)" => :desc)
+          .order("id(object)").desc
           .limit(1)
 
         result = "MATCH (object)\n" +
@@ -381,7 +360,7 @@ module Cypherites
           .return("n.name", as: "name")
           .union
           .match("(n:Movie)")
-          .return("n.title", as: "name")
+          .return("n.title").as("name")
 
         result = "MATCH (n:Actor)\n" + 
                  "RETURN n.name AS name\n" + 
