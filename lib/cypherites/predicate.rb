@@ -80,6 +80,8 @@ module Cypherites
       elsif props.is_a? Array
         r = props.map{|prop| to_prop_string(prop)}
         "[#{r.join(", ")}]"
+      elsif props.nil?
+        "null"
       else
         props.to_s
       end
@@ -87,7 +89,7 @@ module Cypherites
 
     def string_to_prop_string(value, raw=false)
       escaped_string = value.gsub(/['"]/) { |s| "\\#{s}" } if value.is_a?(String) && !raw
-      val = value.is_a?(String) && !raw ? "'#{escaped_string}'" : value
+      val = value.is_a?(String) && !raw ? "'#{escaped_string}'" : to_prop_string(value)
     end
 
     def hash_to_prop_string(props)

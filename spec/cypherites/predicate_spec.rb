@@ -24,6 +24,10 @@ module Cypherites
       it { expect(subject.generate("string")).to be == "predicate 'string'" }
 
       it { expect(subject.generate({key: "value"})).to be == "predicate {key : 'value'}" }
+
+      it { expect(subject.generate({key: {sub_key: "value"}})).to be == "predicate {key : {sub_key : 'value'}}" }
+
+      it { expect(subject.generate({key: nil})).to be == "predicate {key : null}" }
     end
 
 
