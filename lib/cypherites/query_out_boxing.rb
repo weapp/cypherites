@@ -7,8 +7,8 @@ module QueryOutBoxing
     execute
   end
 
-  def call
-    execute
+  def call(*args)
+    execute(*args)
   end
 
   def first
