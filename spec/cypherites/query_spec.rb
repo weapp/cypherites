@@ -102,7 +102,7 @@ module Cypherites
           .with("")
           .start("")
 
-        expect(subject.to_cypher).to be == "RETURN \nSTART \nWITH "
+        expect(subject.to_cypher).to be == "RETURN \nWITH \nSTART "
       end
 
       it "break sorted with no_sort" do
@@ -400,6 +400,23 @@ module Cypherites
                  "USING SCAN m:German\n" +
                  "WHERE m.surname = 'Plantikow'\n" +
                  "RETURN m"
+
+        is_expected.to eq result
+      end
+
+      it "example using with" do
+        subject
+          .match("(n {name: 'John'})-[:FRIEND]-friend")
+          .with("n")
+          .with("count(friend)").as("friendsCount")
+          .where("friendsCount > 3")
+          .return("n")
+          .return("friendsCount")
+
+        result = "MATCH (n {name: 'John'})-[:FRIEND]-friend\n" +
+                 "WITH n, count(friend) AS friendsCount\n" +
+                 "WHERE friendsCount > 3\n" +
+                 "RETURN n, friendsCount"
 
         is_expected.to eq result
       end

@@ -40,7 +40,7 @@ module Cypherites
     end
 
     def match *args
-      new_phase  if @auto_phases && @statements.last.keys != [:MATCH]
+      new_phase if @auto_phases && @statements.last.keys != [:MATCH]
       statement :MATCH, *args
     end
 
@@ -140,7 +140,7 @@ module Cypherites
     end
 
     def with *args
-      new_phase if @auto_phases
+      new_phase if @auto_phases && @statements.last.keys != [:WITH]
       statement :WITH, *args
     end
 
@@ -173,7 +173,7 @@ module Cypherites
     end
 
     private
-    CLAUSES = [:UNION, :UNWIND, :MERGE, :START, :MATCH, :USING, :"OPTIONAL MATCH", :WHERE, :CREATE, :WITH, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
+    CLAUSES = [:WITH, :UNION, :UNWIND, :MERGE, :START, :MATCH, :USING, :"OPTIONAL MATCH", :WHERE, :CREATE, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
 
 
     def statement clause, predicate, *opts
