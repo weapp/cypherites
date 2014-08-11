@@ -1,24 +1,11 @@
 require 'spec_helper'
 
 module Cypherites
-  describe Query do
+  describe BasicQuery do
     let(:runner){double("runner")}
 
     describe ".new" do
-      it "adapter is set" do
-        q = Query.new(runner)
-        expect(q.runner).to be runner
-      end
-
       it("adapter is optional"){ is_expected.to be_truthy}
-    end
-
-    describe "#execute" do
-      it "must call @runner" do
-        q = Query.new(runner)
-        expect(runner).to receive(:call).with(q, {foo: "bar", baz: "qux"})
-        q.execute({foo: "bar", baz: "qux"})
-      end
     end
 
     common_clauses = %w{using unwind merge union skip create match optional_match where return order_by limit delete with}
@@ -41,36 +28,9 @@ module Cypherites
       end
     end
 
-    describe "#return_node" do
-      it "must return itself" do
-        expect(subject.return_node("node1")).to be subject
-      end
-
-      it "must call #statement with correct symbol" do
-          st_build_mock = double("st_build_mock")
-          expect(st_build_mock).to receive(:call).with(:RETURN){Statement.new(:RETURN)}
-
-          subject.statement_builder = st_build_mock
-          subject.return_node("node1")
-      end
-    end
-
-    describe "#return_rel" do
-      it "must return itself" do
-        expect(subject.return_rel("rel")).to be subject
-      end
-
-      it "must call #statement with correct symbol" do
-          st_build_mock = double("st_build_mock")
-          expect(st_build_mock).to receive(:call).with(:RETURN){Statement.new(:RETURN)}
-
-          subject.statement_builder = st_build_mock
-          subject.return_rel("rel")
-      end
-    end
 
     describe "#to_cypher" do
-      it "returned sorted statements" do
+      it "returned statements" do
         subject
           .match("")
           .create("")
@@ -82,7 +42,7 @@ module Cypherites
           .start("")
           .where("")
 
-        result = "START MATCH OPTIONAL MATCH WHERE CREATE RETURN ORDER BY SKIP LIMIT "
+        result = "MATCH CREATE SKIP LIMIT ORDER BY OPTIONAL MATCH RETURN START WHERE "
 
         expect(subject.to_cypher("")).to be == result
       end
@@ -105,29 +65,22 @@ module Cypherites
         expect(subject.to_cypher).to be == "RETURN \nWITH \nSTART "
       end
 
-      it "break sorted with no_sort" do
-        subject
-          .no_sort
-          .return("")
-          .start("")
-
-        expect(subject.to_cypher).to be == "RETURN \nSTART "
-      end
     end
+
 
     context "Some examples of queries" do
       it "example query must work" do
         subject
           .start("object = node(?)", 1)
           .match("(object ?)", {key: "value"})
-          .order_by(:id)
           .optional_match("(object)->[r]->()")
-          .return("id(object)", as: "id")
-          .return("object")
-          .return("r")
           .where(or: [["object.field = ?", "value"], ["wadus = ?", "fadus"]])
           .where("object.field = ?", "value")
           .where("object.field2 = ?", "value2")
+          .return("id(object)", as: "id")
+          .return("object")
+          .return("r")
+          .order_by(:id)
           .skip(3)
           .limit(10)
 
@@ -148,8 +101,8 @@ module Cypherites
       it "example first" do
         subject
           .match("(object)")
-          .return_node("object")
-          .order("id(object)").asc
+          .return("id(object) AS object_id, labels(object) AS object_labels, object")
+          .order_by("id(object) ASC")
           .limit(1)
 
         result = "MATCH (object)\n" +
@@ -163,8 +116,8 @@ module Cypherites
       it "example last" do
         subject
           .match("(object)")
-          .return_node("object")
-          .order("id(object)").desc
+          .return("id(object) AS object_id, labels(object) AS object_labels, object")
+          .order_by("id(object) DESC")
           .limit(1)
 
         result = "MATCH (object)\n" +
@@ -178,8 +131,8 @@ module Cypherites
       it "example find" do
         subject
           .start("object=node(?)", 99)
-          .return_node("object")
-          .order("id(object)")
+          .return("id(object) AS object_id, labels(object) AS object_labels, object")
+          .order_by("id(object)")
           .limit(1)
 
         result = "START object=node(99)\n" + 
@@ -193,7 +146,7 @@ module Cypherites
       it "example all" do
         subject
           .match("(object)")
-          .return_node("object")
+          .return("id(object) AS object_id, labels(object) AS object_labels, object")
 
         result = "MATCH (object)\n" + 
                  "RETURN id(object) AS object_id, labels(object) AS object_labels, object"
@@ -222,8 +175,7 @@ module Cypherites
           .where("a.name = 'Node A'")
           .where("b.name = 'Node B'")
           .create("(a)-[r:RELTYPE]->(b)")
-          .return("r")
-          .distinct
+          .return("DISTINCT r")
 
         result = "MATCH (a:Person), (b:Person)\n" +
                  "WHERE a.name = 'Node A' AND b.name = 'Node B'\n" +
@@ -239,7 +191,7 @@ module Cypherites
           .merge("(y:Year { year:event.year })")
           .merge("(y)<-[:IN]-(e:Event { id:event.id })")
           .return("e.id AS x")
-          .order({x: :asc}, "e.id")
+          .order_by("x ASC, e.id")
 
         result = "UNWIND { events } AS event\n" + 
                  "MERGE (y:Year { year:event.year })\n" + 
@@ -254,7 +206,7 @@ module Cypherites
         subject
           .match("(n { name: \"Anders\" })--(m)")
           .with("m")
-          .order("m.name" => :desc)
+          .order_by("m.name DESC")
           .limit(1)
           .match("(m)--(o)")
           .return("o.name")
@@ -275,11 +227,11 @@ module Cypherites
           .return("n.name", as: "name")
           .union
           .match("(n:Movie)")
-          .return("n.title").as("name")
+          .return("n.title AS name")
 
         result = "MATCH (n:Actor)\n" + 
                  "RETURN n.name AS name\n" + 
-                 "UNION \n" + 
+                 "UNION \n" +
                  "MATCH (n:Movie)\n" + 
                  "RETURN n.title AS name"
 
@@ -289,8 +241,8 @@ module Cypherites
       it "example using index" do
         subject
           .match("(m:German)-->(n:Swedish)")
-          .using_index("m:German(surname)")
-          .using_index("n:Swedish(surname)")
+          .using("INDEX m:German(surname)")
+          .using("INDEX n:Swedish(surname)")
           .where("m.surname = 'Plantikow'")
           .where("n.surname = 'Taylor'")
           .return("m")
@@ -307,7 +259,7 @@ module Cypherites
       it "example using scan" do
         subject
           .match("(m:German)")
-          .using_scan("m:German")
+          .using("SCAN m:German")
           .where("m.surname = 'Plantikow'")
           .return("m")
 
@@ -323,7 +275,7 @@ module Cypherites
         subject
           .match("(n {name: 'John'})-[:FRIEND]-friend")
           .with("n")
-          .with("count(friend)").as("friendsCount")
+          .with("count(friend) AS friendsCount")
           .where("friendsCount > 3")
           .return("n")
           .return("friendsCount")
@@ -337,6 +289,7 @@ module Cypherites
       end
 
     end
+
 
   end
 end

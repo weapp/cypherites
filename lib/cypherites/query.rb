@@ -1,63 +1,22 @@
-require_relative "predicate"
-require_relative "statement"
 require_relative "query_out_boxing"
+require_relative "basic_query"
 
 module Cypherites
-  class Query
+  class Query < BasicQuery
 
     include QueryOutBoxing
     
-    attr_accessor :runner, :statement_builder, :predicate_builder, :sorted, :sep
+    attr_accessor :runner, :sorted
 
-    def initialize(runner=nil, statement_builder=Statement.method(:new), predicate_builder=Predicate.method(:build))
+    def initialize(runner=nil)
+      super()
       self.sorted = true
       self.runner = runner
-      self.statement_builder = statement_builder
-      self.predicate_builder = predicate_builder
-      @statements = []
-      new_phase
-      @sep = "\n"
-      @auto_phases = true
-    end
-
-    def new_phase
-      @last_clause = nil
-      @statements << Hash.new{|h,k| h[k] = self.statement_builder.(k) }
-      self
     end
 
     def no_sort
       self.sorted = false
       self
-    end
-
-    def create *args
-      statement :CREATE, *args
-    end
-
-    def start *args
-      statement :START, *args
-    end
-
-    def match *args
-      new_phase if @auto_phases && @statements.last.keys != [:MATCH]
-      statement :MATCH, *args
-    end
-
-    def optional_match *args
-      statement :"OPTIONAL MATCH", *args
-    end
-
-    def where *args
-      statement :WHERE, *args
-    end
-
-    def delete *args
-      statement :DELETE, *args
-    end
-
-    def return *args
-      statement :RETURN, *args
     end
 
     def distinct
@@ -84,10 +43,6 @@ module Cypherites
       return_node_or_rel "type", *fields
     end
 
-    def order_by *args
-      statement :"ORDER BY", *args
-    end
-
     def order *args
       args.each do |option|
         if option.kind_of? Hash
@@ -101,16 +56,8 @@ module Cypherites
       self
     end
 
-    def skip *args
-      statement :SKIP, *args
-    end
-
     def unwind *args
       statement :UNWIND, *args
-    end
-
-    def using *args
-      statement :USING, *args
     end
 
     def using_index predicate, *opts
@@ -121,25 +68,6 @@ module Cypherites
     def using_scan predicate, *opts
       add_predicate :USING, predicate_builder.("SCAN #{predicate}", *opts)
       self
-    end
-
-    def merge *args
-      statement :MERGE, *args
-    end
-
-    def union predicate="", *args
-      new_phase
-      statement :UNION, predicate, *args
-      new_phase
-    end
-
-    def with *args
-      new_phase if @auto_phases && @statements.last.keys != [:WITH]
-      statement :WITH, *args
-    end
-
-    def limit *args
-      statement :LIMIT, *args
     end
 
     def execute *args
@@ -167,22 +95,7 @@ module Cypherites
     end
 
     private
-    CLAUSES = [:WITH, :UNION, :UNWIND, :MERGE, :START, :MATCH, :USING, :"OPTIONAL MATCH", :WHERE, :CREATE, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
-
-
-    def statement clause, predicate, *opts
-      statement! clause, predicate, *opts
-      self
-    end
-
-    def statement! clause, predicate, *opts
-      add_predicate clause, predicate_builder.(predicate, *opts)
-    end
-
-    def add_predicate clause, predicate
-      @last_clause = clause
-      @statements.last[clause].add predicate
-    end
+    CLAUSES = [:UNION, :WITH, :UNWIND, :MERGE, :START, :MATCH, :USING, :"OPTIONAL MATCH", :WHERE, :CREATE, :FOREACH, :SET, :DELETE, :REMOVE, :RETURN, :"ORDER BY", :SKIP, :LIMIT]
 
     def all_sorted_statements
       arr = []
@@ -210,7 +123,7 @@ module Cypherites
 
     def return_node_or_rel func, *fields
       fields.each do |field| 
-        self.return("id(#{field}) as #{field}_id, #{func}(#{field}) as #{field}_#{func}, #{field}")
+        self.return("id(#{field}) AS #{field}_id, #{func}(#{field}) AS #{field}_#{func}, #{field}")
       end
       self
     end
