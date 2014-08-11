@@ -2,6 +2,8 @@
 
 A ruby query builder for chypher and neo4j
 
+[![Code Climate](https://codeclimate.com/github/weapp/cypherites/badges/gpa.svg)](https://codeclimate.com/github/weapp/cypherites)
+
 ## Installation
 
 Add this line to your application's Gemfile:
