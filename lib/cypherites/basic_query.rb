@@ -53,6 +53,10 @@ module Cypherites
       statement :"ORDER BY", *args
     end
 
+    def set *args
+      statement :SET, *args
+    end
+
     def skip *args
       statement :SKIP, *args
     end

@@ -8,7 +8,7 @@ module Cypherites
       it("adapter is optional"){ is_expected.to be_truthy}
     end
 
-    common_clauses = %w{using unwind merge union skip create match optional_match where return order_by limit delete with}
+    common_clauses = %w{set using unwind merge union skip create match optional_match where return order_by limit delete with}
 
     common_clauses.each do |clause|
       describe "##{clause}" do
