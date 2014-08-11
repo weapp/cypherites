@@ -1,9 +1,11 @@
 module Cypherites
   class Predicate
-    attr_accessor :predicate
+    attr_accessor :predicate, :number_of_params
 
     def initialize predicate
       self.predicate = predicate
+      self.number_of_params = 0
+      prepare_predicate(predicate)
       @last_opts = {}
     end
 
@@ -18,35 +20,44 @@ module Cypherites
 
     private
 
-    # parses of predicates    
-    def generate_from_string *params
-      counter = 0
-      p = predicate
-        .gsub(/%/, '%%')
-        .gsub(/([^\\])\?/){|m| counter +=1; "#{m[0]}%s"} # interrogante no escapado
-        .gsub(/^\?/){counter +=1; '%s'} # interrogante al inicio
-        .gsub(/\\\?/, '?')
+    # parses of predicates
 
-      number_of_params = params.count
+    def prepare_predicate(predicate)
+      if predicate.is_a? String
+        counter = 0
+        self.predicate = predicate
+          .gsub(/%/, '%%')
+          .gsub(/([^\\])\?/){|m| counter +=1; "#{m[0]}%s"} # interrogante no escapado
+          .gsub(/^\?/){counter +=1; '%s'} # interrogante al inicio
+          .gsub(/\\\?/, '?')
+        self.number_of_params = counter
+      end
+    end
 
-      # updating last opts from params
-      @last_opts = params.pop if counter == (params.count - 1)
-
+    def apply_opts(predicate, opts)
       # apply "as" option
-      p << " AS #{@last_opts.delete(:as)}" if @last_opts.has_key? :as
+      if opts.has_key? :as
+        predicate + " AS #{opts.delete(:as)}" 
+      else
+        predicate
+      end
+    end
+
+    def generate_from_string *params
+      opts = (self.number_of_params + 1)== params.count ? params.pop : {}
+
+      p = apply_opts(predicate, opts)
 
       # interpolating string
       p % params.map{|prop| to_prop_string(prop)}
     end
 
 
-    def generate_from_fixnum opts={}
-      @last_opts = opts
+    def generate_from_fixnum
       predicate.to_s
     end
 
-    def generate_from_symbol opts={}
-      @last_opts = opts
+    def generate_from_symbol
       predicate.to_s
     end
 
