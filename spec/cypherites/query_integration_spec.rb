@@ -34,7 +34,7 @@ module Cypherites
 
           # it
             q = Query.new(runner).match("p=(a:Test { name: 'A' })-[r]->(b)").return("*")
-            expect(q.call({}, filter: :all)["columns"]).to eq ["a", "b", "p", "r"]
+            expect(q.call({}, filter: :all)["columns"].sort).to eq ["a", "b", "p", "r"]
 
           # it
             q = Query.new(runner)
