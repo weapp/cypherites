@@ -1,10 +1,12 @@
-require 'ostruct'
-require 'coveralls'
-require 'cypherites'
-require 'support/runner'
+require "codeclimate-test-reporter"
+CodeClimate::TestReporter.start
 
+require 'coveralls'
 Coveralls.wear!
 
+require 'ostruct'
+require 'cypherites'
+require 'support/runner'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |c|

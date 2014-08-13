@@ -1,0 +1,7 @@
+script: "bundle exec rake neo4j:install['enterprise','2.0.1'] neo4j:get_spatial neo4j:start spec --trace"
+language: ruby
+rvm:
+  - 2.0.0
+addons:
+  code_climate:
+    repo_token: c69ca0af1fe1c0c67dee8532e1ee1ac95a9c8a6d3f1262d44b0cec3c2b0ca993 

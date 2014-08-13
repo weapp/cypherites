@@ -4,6 +4,7 @@ require "bundler/gem_tasks"
 # Bundler::GemHelper.install_tasks
 
 require 'rspec/core/rake_task'
+require 'cypherites/tasks'
 
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = "--color"
