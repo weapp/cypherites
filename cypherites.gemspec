@@ -24,6 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec"
   spec.add_development_dependency "multi_json"
   spec.add_development_dependency "rest_client"
+  spec.add_development_dependency "coveralls"
   
   if /darwin|mac os/ === RbConfig::CONFIG['host_os']
     spec.add_development_dependency 'terminal-notifier-guard'
