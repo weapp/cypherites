@@ -3,6 +3,9 @@
 A ruby query builder for chypher and neo4j
 
 [![Code Climate](https://codeclimate.com/github/weapp/cypherites/badges/gpa.svg)](https://codeclimate.com/github/weapp/cypherites)
+[![Build Status](https://secure.travis-ci.org/weapp/cypherites.png?branch=master)](http://travis-ci.org/weapp/cypherites)
+[![Coverage Status](https://coveralls.io/repos/weapp/cypherites/badge.png?branch=master)](https://coveralls.io/r/maxdemarzi/cypherites)
+
 
 ## Installation
 
