@@ -28,7 +28,6 @@ module Cypherites
       end
     end
 
-
     describe "#to_cypher" do
       it "returned statements" do
         subject
@@ -67,6 +66,17 @@ module Cypherites
 
     end
 
+    describe "#to_str" do
+     it{ expect(subject.match("(n {field:'value'})").to_str).to eq subject.to_cypher }
+    end
+
+    describe "#inspect" do
+     it{ expect(subject.match("(n {field:'value'})").inspect).to eq subject.to_cypher }
+    end
+
+    describe "#modify_last" do
+     it{ expect(subject.return("n").send(:modify_last, "%s AS other name").to_cypher).to eq "RETURN n AS other name" }
+    end
 
     context "Some examples of queries" do
       it "example query must work" do

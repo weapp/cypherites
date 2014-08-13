@@ -23,6 +23,14 @@ module Cypherites
       end
     end
 
+    describe "#inspect" do
+      it do
+        subject.add("predicate 0")
+        subject.add("predicate 1")
+        expect(subject.inspect).to eq "[\"predicate 0\", \"predicate 1\"]"
+      end
+    end
+
     describe "#join" do
       it "predicates must be separted by comma" do
         subject.add("predicate 1")

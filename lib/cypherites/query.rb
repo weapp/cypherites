@@ -78,18 +78,6 @@ module Cypherites
       all_sorted_statements.map(&:join).join(sep)
     end
 
-    def to_str
-      to_cypher
-    end
-
-    def to_s
-      to_cypher
-    end
-
-    def inspect
-      to_cypher
-    end
-
     def == other
       to_s == other.to_s
     end
