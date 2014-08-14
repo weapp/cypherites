@@ -62,7 +62,7 @@ module Cypherites
     end
 
     def generate_from_hash
-      predicates = predicate.fetch(:or){predicate.fech("or")}
+      predicates = predicate.fetch(:or){predicate.fetch("or")}
       predicates = predicates.map do |args|
         built = self.class.build(*args)
         "(#{built})"
