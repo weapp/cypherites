@@ -5,7 +5,7 @@ require 'net/http'
 
 namespace :neo4j do
   desc "Install Neo4j"
-  task :install, :edition, :version do |t, args|
+  task :install, :edition, :version do |_, args|
     args.with_defaults(:edition => "community", :version => "2.1.3")
     puts "Installing Neo4j-#{args[:edition]}-#{args[:version]}"
     
@@ -40,7 +40,7 @@ namespace :neo4j do
           end
         end
         FileUtils.mv "neo4j-#{args[:edition]}-#{args[:version]}", "neo4j"
-     end
+      end
 
       # Install if running with Admin Privileges
       if %x[reg query "HKU\\S-1-5-19"].size > 0 
@@ -154,7 +154,7 @@ namespace :neo4j do
     end
   end
 
-  task :get_spatial, :version  do |t, args|
+  task :get_spatial, :version  do |_, args|
     args.with_defaults(:version => "2.0.1")
     puts "Installing Neo4j-Spatial #{args[:version]}"
 
@@ -201,7 +201,7 @@ namespace :neo4j do
            puts f.name + " failed to extract."
          end
         end
-     end
+      end
 
   end
 end  

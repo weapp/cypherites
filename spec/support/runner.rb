@@ -4,14 +4,14 @@ require 'rest_client'
 module Support
   class Runner
     def cypher hsh
-      response = RestClient.post("http://localhost:7474/db/data/cypher", MultiJson.dump(hsh), :content_type => :json, :accept => :json){|response, request, result| response }
-      MultiJson.load(response)
+      raw_response = RestClient.post("http://localhost:7474/db/data/cypher", MultiJson.dump(hsh), :content_type => :json, :accept => :json){|response, _request, _result| response }
+      MultiJson.load(raw_response)
     end
 
     def transaction hsh
       hsh = {statements:[{statement: hsh[:query], params: hsh[:params], resultDataContents: ["row","graph"],includeStats: true}]}
-      response = RestClient.post("http://localhost:7474/db/data/transaction/commit", MultiJson.dump(hsh), :content_type => :json, :accept => :json){|response, request, result| response }
-      MultiJson.load(response)
+      raw_response = RestClient.post("http://localhost:7474/db/data/transaction/commit", MultiJson.dump(hsh), :content_type => :json, :accept => :json){|response, _request, _result| response }
+      MultiJson.load(raw_response)
     end
 
     def call query, params={}, opts={}
@@ -34,11 +34,11 @@ module Support
     end
 
     def graph_transaction_filter(result)
-      result["results"].first["data"].map{|result| result["graph"]}
+      result["results"].first["data"].map{|res| res["graph"]}
     end
 
     def relationships_transaction_filter(result)
-      graph_transaction_filter(result).map{|result| result["relationships"]}.flatten
+      graph_transaction_filter(result).map{|res| res["relationships"]}.flatten
     end
 
     def relationship_transaction_filter(result)

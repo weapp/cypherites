@@ -130,7 +130,7 @@ module Cypherites
     def statements_to_cypher
       arr = []
       @statements.each do |statements|
-       arr += statements.map{|clause, statement| statement}
+       arr += statements.map{|_clause, statement| statement}
       end
       arr
     end

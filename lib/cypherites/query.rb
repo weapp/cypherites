@@ -88,7 +88,7 @@ module Cypherites
     def all_sorted_statements
       arr = []
       @statements.each do |statements|
-       arr += sorted_statements(statements).map{|clause, statement| statement}
+       arr += sorted_statements(statements).map{|_clause, statement| statement}
       end
       arr
     end
@@ -103,7 +103,7 @@ module Cypherites
 
     def sorted_statements statements
       if sorted
-        statements.sort_by { |clause, statement| CLAUSES.index(clause) }
+        statements.sort_by { |clause, _statement| CLAUSES.index(clause) }
       else
         statements
       end

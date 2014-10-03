@@ -4,7 +4,7 @@ module Cypherites
 
   describe Query do
 
-    let(:execute) { ->(query){["first", "last"]} }
+    let(:execute) { ->(_query){["first", "last"]} }
     let(:q)       { Query.new(execute) }
 
     describe "#to_a" do

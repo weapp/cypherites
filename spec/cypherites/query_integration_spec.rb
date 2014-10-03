@@ -5,7 +5,7 @@ module Cypherites
     describe "#execute" do
       before{clear_query.execute}
       after{clear_query.execute}
-      let (:clear_query){
+      let(:clear_query){
         Query.new(runner)
             .match("(n:Test)")
             .optional_match("(n)-[r]-()")
